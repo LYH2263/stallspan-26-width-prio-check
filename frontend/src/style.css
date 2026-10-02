@@ -142,6 +142,15 @@ th { color: var(--ss-muted); font-weight: 700; font-size: 0.78rem; }
 .btn:hover { filter: brightness(1.06); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .muted { color: var(--ss-muted); }
+.ss-reject {
+  background: rgba(163,58,44,0.14); color: var(--ss-bad);
+  border: 1px solid rgba(163,58,44,0.5); border-radius: 3px;
+  padding: 0.45rem 0.7rem; font-size: 0.85rem; font-weight: 700; margin: 0.4rem 0;
+}
+input {
+  padding: 0.35rem 0.45rem; font-size: 0.85rem;
+  border: 1px solid var(--ss-curb); border-radius: 3px; background: #fff;
+}
 .stat { font-size: 1.5rem; font-weight: 800; }
 
 .stall-strip { display: flex; height: 56px; border: 2px solid var(--ss-curb); overflow: hidden; margin: 0.75rem 0; background: #3a3126; }

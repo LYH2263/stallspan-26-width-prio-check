@@ -6,12 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.config import settings
 from app.database import Base, SessionLocal, engine
+from app.services.migrations import ensure_db_rules
 from app.services.seed import seed_if_empty
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    ensure_db_rules(engine)  # 旧库补 CHECK：先归一化违规老数据，历史 allocation_runs 不碰
     if settings.seed_on_empty:
         db = SessionLocal()
         try:

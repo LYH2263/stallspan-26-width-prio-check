@@ -6,12 +6,18 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.models import AllocationRun, Pillar, Segment, Vendor
 from app.services.first_fit_engine import allocate_first_fit, result_to_dict
+from app.services.rules import RuleViolation, validate_street_width
 router = APIRouter(prefix="/allocate", tags=["allocate"])
 
 @router.post("/run")
 def run_allocate(segment_id: int = 1, db: Session = Depends(get_db)):
     seg = db.get(Segment, segment_id)
     if not seg: raise HTTPException(404, "街段不存在")
+    try:
+        validate_street_width(seg.width_m)
+    except RuleViolation as e:
+        # 街宽非法是配置错误，不得记成“空档不够”的分配结果，也不落 AllocationRun
+        raise HTTPException(422, detail={"field": e.field, "message": e.message})
     pillars = [{"position_m": p.position_m, "thickness_m": p.thickness_m}
                for p in db.scalars(select(Pillar).where(Pillar.segment_id == segment_id)).all()]
     vendors = [{"id": v.id, "name": v.name, "stall_width_m": v.stall_width_m, "priority": v.priority}

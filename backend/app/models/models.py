@@ -1,7 +1,8 @@
 from datetime import date, datetime
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from app.database import Base
+from app.services.rules import segment_check_sql, vendor_check_sql
 
 class MarketDay(Base):
     __tablename__ = "market_days"
@@ -15,6 +16,10 @@ class Segment(Base):
     market_day_id: Mapped[int] = mapped_column(ForeignKey("market_days.id"))
     name: Mapped[str] = mapped_column(String(64))
     width_m: Mapped[float] = mapped_column(Float)
+    __table_args__ = (
+        # 街宽 > 0 —— 与 app.services.rules.segment_check_sql 同源
+        CheckConstraint(segment_check_sql(), name="ck_segments_width_positive"),
+    )
 
 class Vendor(Base):
     __tablename__ = "vendors"
@@ -23,6 +28,10 @@ class Vendor(Base):
     name: Mapped[str] = mapped_column(String(64))
     stall_width_m: Mapped[float] = mapped_column(Float)
     priority: Mapped[int] = mapped_column(Integer, default=1)
+    __table_args__ = (
+        # 摊宽>0、优先1-9整数、优先×摊宽交叉档位 —— 与 rules.vendor_check_sql 同源
+        CheckConstraint(vendor_check_sql(), name="ck_vendors_priority_width"),
+    )
 
 class Pillar(Base):
     __tablename__ = "pillars"

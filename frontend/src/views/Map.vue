@@ -3,7 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '../api'
 const data = ref<any>(null)
 const vendors = ref<any[]>([])
-async function run() { data.value = await api('/allocate/run?segment_id=1', { method: 'POST' }) }
+const runError = ref('')
+async function run() {
+  try {
+    // 成功才替换 data；失败保留已落色块，绝不清空
+    data.value = await api('/allocate/run?segment_id=1', { method: 'POST' })
+    runError.value = ''
+  } catch (e) {
+    runError.value = e instanceof Error ? e.message : String(e)
+  }
+}
 onMounted(async () => {
   vendors.value = await api('/vendors')
   await run()
@@ -27,6 +36,9 @@ const cells = computed(() => {
     <h1>街段分配带</h1>
     <p class="sub">沿街一维开间 · 挡柱为竖直阻断 · 底部为摊主排队</p>
     <button class="btn" @click="run">重新分配</button>
+    <p v-if="runError" class="card ss-run-error" style="color:var(--ss-bad);border-color:var(--ss-bad)">
+      本次分配被拒，图上仍为改前色块：{{ runError }}
+    </p>
     <div class="ss-band-ruler" v-if="data">
       <span>0 m</span>
       <span>{{ data.segment.name }} · {{ data.segment.width_m }} m</span>
